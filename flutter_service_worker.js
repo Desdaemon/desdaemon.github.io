@@ -8,10 +8,7 @@ const RESOURCES = {
 "assets/assets/fonts/JetBrainsMono-Italic.ttf": "342fa9d499e506144959ab12673ae0c4",
 "assets/NOTICES": "b2d381988e2c9ee59281b6ca025c82b5",
 "assets/FontManifest.json": "e73815907bfef0a71b104c887e1b14ea",
-"assets/js/rust_md_dart.js": "fbc3d0336ba63aba2a19a5421ccc891a",
-"assets/js/rust_md_dart_bg.js": "6caab8808f526da9638459b8e678a215",
-"assets/js/rust_md_dart_bg.wasm": "e20141fe7949381e297c83d4e845b110",
-"assets/AssetManifest.json": "a29f694bdfaa337d2a3ce226d853079f",
+"assets/AssetManifest.json": "6ee541f1a9d3684667bc6258921e5fbd",
 "assets/fonts/MaterialIcons-Regular.otf": "4e6447691c9509f7acdbf8a931a85ca1",
 "assets/packages/flutter_math_fork/lib/katex_fonts/fonts/KaTeX_Size1-Regular.ttf": "1e6a3368d660edc3a2fbbe72edfeaa85",
 "assets/packages/flutter_math_fork/lib/katex_fonts/fonts/KaTeX_SansSerif-Bold.ttf": "ad0a28f28f736cf4c121bcb0e719b88a",
@@ -34,6 +31,7 @@ const RESOURCES = {
 "assets/packages/flutter_math_fork/lib/katex_fonts/fonts/KaTeX_SansSerif-Italic.ttf": "d89b80e7bdd57d238eeaa80ed9a1013a",
 "assets/packages/flutter_math_fork/lib/katex_fonts/fonts/KaTeX_Main-Italic.ttf": "ac3b1882325add4f148f05db8cafd401",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "6d342eb68f170c97609e9da345464e5e",
+"rust_md_dart.js": "fbc3d0336ba63aba2a19a5421ccc891a",
 "icons/Icon-maskable-192.png": "c457ef57daa1d16f64b27b786ec2ea3c",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
 "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
@@ -41,9 +39,11 @@ const RESOURCES = {
 "manifest.json": "410d937a6e818460673c11fbe7aa6162",
 "main.dart.js": "5891066252f6a49f99b5bfd57f148c91",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796",
-"index.html": "86072fa8845f73815bee4eb403da9833",
-"/": "86072fa8845f73815bee4eb403da9833",
-"version.json": "9ef09706ac4e6f63328808ccf8b7f5ef"
+"index.html": "2f94a128077290dd15aed0e0c4353b00",
+"/": "2f94a128077290dd15aed0e0c4353b00",
+"rust_md_dart_bg.js": "6caab8808f526da9638459b8e678a215",
+"version.json": "9ef09706ac4e6f63328808ccf8b7f5ef",
+"rust_md_dart_bg.wasm": "e20141fe7949381e297c83d4e845b110"
 };
 
 // The application shell files that are downloaded before a service worker can
