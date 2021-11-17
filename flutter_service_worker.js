@@ -6,7 +6,7 @@ const RESOURCES = {
   "assets/assets/markdown_reference.md": "c0d723e5795da19c93b913f96ad26e0c",
 "assets/assets/fonts/JetBrainsMono-Regular.ttf": "a7151c5349c1aa20beefb3c5430c3a79",
 "assets/assets/fonts/JetBrainsMono-Italic.ttf": "342fa9d499e506144959ab12673ae0c4",
-"assets/NOTICES": "b2d381988e2c9ee59281b6ca025c82b5",
+"assets/NOTICES": "3e33978445908323beffb1996a6ca344",
 "assets/FontManifest.json": "e73815907bfef0a71b104c887e1b14ea",
 "assets/AssetManifest.json": "6ee541f1a9d3684667bc6258921e5fbd",
 "assets/fonts/MaterialIcons-Regular.otf": "4e6447691c9509f7acdbf8a931a85ca1",
@@ -31,19 +31,19 @@ const RESOURCES = {
 "assets/packages/flutter_math_fork/lib/katex_fonts/fonts/KaTeX_SansSerif-Italic.ttf": "d89b80e7bdd57d238eeaa80ed9a1013a",
 "assets/packages/flutter_math_fork/lib/katex_fonts/fonts/KaTeX_Main-Italic.ttf": "ac3b1882325add4f148f05db8cafd401",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "6d342eb68f170c97609e9da345464e5e",
-"rust_md_dart.js": "fbc3d0336ba63aba2a19a5421ccc891a",
+"rust_md_dart.js": "b05a71722e60be3e72d59d2df125ec08",
 "icons/Icon-maskable-192.png": "c457ef57daa1d16f64b27b786ec2ea3c",
 "icons/Icon-192.png": "ac9a721a12bbc803b44f645561ecb1e1",
 "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
 "icons/Icon-maskable-512.png": "301a7604d45b3e739efc881eb04896ea",
 "manifest.json": "410d937a6e818460673c11fbe7aa6162",
-"main.dart.js": "5891066252f6a49f99b5bfd57f148c91",
+"main.dart.js": "46c0a99f3cd3d1df5f5ffc7875491a54",
 "favicon.png": "5dcef449791fa27946b3d35ad8803796",
-"index.html": "2f94a128077290dd15aed0e0c4353b00",
-"/": "2f94a128077290dd15aed0e0c4353b00",
+"index.html": "525a75833cc3f37ae4062ee55632784b",
+"/": "525a75833cc3f37ae4062ee55632784b",
 "rust_md_dart_bg.js": "6caab8808f526da9638459b8e678a215",
 "version.json": "9ef09706ac4e6f63328808ccf8b7f5ef",
-"rust_md_dart_bg.wasm": "e20141fe7949381e297c83d4e845b110"
+"rust_md_dart_bg.wasm": "a17396caa576a678a6f1f3f61e330f71"
 };
 
 // The application shell files that are downloaded before a service worker can

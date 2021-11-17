@@ -102,7 +102,7 @@ function takeObject(idx) {
 }
 /**
 * @param {string} markdown
-* @returns {any}
+* @returns {Element[] | null}
 */
 export function parse(markdown) {
     var ptr0 = passStringToWasm0(markdown, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
