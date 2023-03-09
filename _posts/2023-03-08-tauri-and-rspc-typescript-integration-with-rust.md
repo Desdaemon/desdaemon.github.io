@@ -244,7 +244,7 @@ note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 
 <p style="font-size: 2em">😔</p>
 
-Well, we're living on the cutting edge so things like this are bound to happen. It's possible you're reading this the future, and everything runs as expected.
+Well, we're living on the cutting edge so things like this are bound to happen. It's possible you're reading this in the future, and everything runs as expected.
 There are a few ways to fix this, but to keep it simple I'll bring in a Tokio runtime:
 
 ```shell
