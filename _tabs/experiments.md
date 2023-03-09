@@ -1,7 +1,5 @@
 ---
-layout: page
-title: Experiments
-permalink: /experiments/
+order: 0
 ---
 
 - [**markdown_editor**](/md-edit): [GitHub](https://github.com/Desdaemon/markdown_editor)
@@ -10,4 +8,4 @@ permalink: /experiments/
 
 - [**polars_dart**](/polars_dart): [GitHub](https://github.com/Desdaemon/polars_dart)
 
-High-performance Dart bindings for the Rust [polars](https://pola.rs) library.
+  High-performance Dart bindings for the Rust [polars](https://pola.rs) library.
