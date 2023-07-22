@@ -9,3 +9,7 @@ order: 0
 - [**polars_dart**](/polars_dart): [GitHub](https://github.com/Desdaemon/polars_dart)
 
   High-performance Dart bindings for the Rust [polars](https://pola.rs) library.
+
+- **typed-htmx**: [GitHub](https://github.com/Desdaemon/typed-htmx)
+
+  JSX attributes definitions for [htmx](https://htmx.org/).
