@@ -13,3 +13,7 @@ order: 0
 - **typed-htmx**: [GitHub](https://github.com/Desdaemon/typed-htmx)
 
   JSX attributes definitions for [htmx](https://htmx.org/).
+
+- **swc-plugin-static-jsx**: [GitHub](https://github.com/Desdaemon/swc-plugin-static-jsx)
+
+  [SWC](https://swc.rs) plugin to convert JSX expressions into faster tagged templates.
