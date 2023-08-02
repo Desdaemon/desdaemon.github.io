@@ -10,7 +10,7 @@ order: 0
 
   High-performance Dart bindings for the Rust [polars](https://pola.rs) library.
 
-- **typed-htmx**: [GitHub](https://github.com/Desdaemon/typed-htmx)
+- [**typed-htmx**](/typed-htmx): [GitHub](https://github.com/Desdaemon/typed-htmx)
 
   JSX attributes definitions for [htmx](https://htmx.org/).
 
