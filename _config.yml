@@ -115,7 +115,7 @@ assets:
     env:          # [development|production]
 
 pwa:
-  enabled: true   # the option for PWA feature
+  enabled: false   # the option for PWA feature
 
 paginate: 10
 
@@ -139,7 +139,7 @@ collections:
 
 defaults:
   - scope:
-      path: ''          # An empty string here means all files in the project
+      path: _posts          # An empty string here means all files in the project
       type: posts
     values:
       layout: post
