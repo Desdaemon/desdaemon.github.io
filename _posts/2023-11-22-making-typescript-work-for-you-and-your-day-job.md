@@ -605,6 +605,63 @@ const Foo = Class.extend(Say, {
 });
 ```
 
+Even this technique has its limits. One consequence of having to inject `this` while `Proto` is still being inferred
+is that you will have to annotate all your return types that are not `void`. Let's see why:
+
+```ts twoslash
+declare const Class: { extend: Extend }
+interface Class<Proto> { new (...args: any[]): Proto; extend: Extend<Proto>; }
+type ProtoOf<T> = T extends Class<infer Proto> ? Proto : T;
+type Mixed<T> = T extends [infer Head, ...infer Tail] ? ProtoOf<Head> & Mixed<Tail> : {};
+type Extend<Base = {}> =
+  <Mixins extends any[], Proto>(...protos: [...Mixins, WithThis<Proto, Mixed<[Base, ...Mixins]>>]) =>
+    Class<Mixed<[Base, ...Mixins, Proto]>>;
+type WithSuper<Proto, Base, Method> =
+  Method extends keyof Base
+    ? Base[Method] extends (..._: infer Args) => infer Output
+      ? Base & Proto & { _super(..._: Args): Output }
+      : Base & Proto
+    : Base & Proto;
+// ---cut---
+// Let's take a look at WithThis again
+type WithThis<Proto, Base> = {
+  [K in keyof Proto]:
+    Proto[K] extends (..._: infer Args) => infer Output
+      ? (this: WithSuper<Proto, Base, K>, ..._: Args) => Output
+      : Proto[K];
+} 
+
+const Counter = Class.extend({
+  value: 0,
+  next() {
+    return this.value++;
+  },
+});
+
+const Foo = Counter.extend({
+  next() {
+  //^?
+    return this._super() + 1;
+  }
+});
+```
+
+Even though it would be trivial to infer `this._super() + 1` to be `number` and assign that to the return type of
+`Foo.next`, Typescript cannot decipher it at all and falls back to `any`.
+A rundown of what happens when `Foo.next`'s return type is being inferred:
+
+- `next`'s return type depends on the expression `this._super() + 1`
+- Instead of short-circuiting here because `object + 1` always returns `number`, it evaluates `this._super()`
+- ...which evaluates `this._super`
+- ...which evaluates `this`, whose type is `WithThis<..>`
+- `WithThis<..>` has a clause `Proto[K] extends (..) => infer Output`, which is the type in question.
+  There's nothing to infer since Typescript is still trying to infer `Output`.
+- A loop is formed when attempting to resolve `Foo.next`'s return type, so bail out.
+
+This is only a high-level observation that is not yet backed with proper code review, but it should now be clearer
+why the return type is not automatically inferred. I might make an update should a new solution be found, or
+Typescript is updated to handle this pattern. For now, here is the [complete listing].
+
 ## The Twist
 
 ...Aha! Gotcha, didn't I? When you thought it was the home stretch, but apparently there are still mysteries to be solved and bugs to be squashed.
@@ -630,12 +687,12 @@ If you were unlucky enough to encouter such cases where the type checker simply 
 Error: Debug Failure. Expected [object Object] === [object Object]. Parameter symbol already has a cached type which differs from newly assigned type
 ```
 
-Messages like this are a good stopping point for the day. No, really. Pat yourself on the back, because you deserve it and your suffering will be a great
-contribution towards the advancement of humanity as a whole, blah blah blah. In the industry we call these *internal compiler errors* or ICEs for short,
+[Messages like this](https://github.com/microsoft/TypeScript/issues/50773) are a good stopping point for the day. No, really. Pat yourself on the back, because you deserve it and your suffering will be a great
+contribution towards the advancement of humanity as a whole, so on and so forth. In the industry we call these *internal compiler errors* or ICEs for short,
 because boy does it always take a lot of time to break the ice! (sorry not sorry)
 
-Regardless, it seems that our little experiment has managed to reach the limits of what Typescript is presently capable of. Perhaps I might even revisit this
-particular topic in the future, preferably after me or someone else opening a PR to fix this particular wart in what I can only otherwise consider one of my favorite languages.
+Regardless, it seems that our little experiment has managed to reach the limits of what Typescript is presently capable of. Perhaps I might revisit this
+particular topic in the future, preferably after me or someone else opening a PR to fix this wart in what I can only otherwise consider one of my favorite languages.
 And that was the story of how I saved my relationship with my day job, and how you can too with the right amount of 🌈 Type Magic.
 
 [AutoHotkey]: https://www.autohotkey.com
@@ -644,3 +701,4 @@ And that was the story of how I saved my relationship with my day job, and how y
 [AMD modules]: https://requirejs.org/docs/whyamd.html#amd
 [Typescript plugin]: https://github.com/Desdaemon/odoo-import
 [mixin]: https://en.wikipedia.org/wiki/Mixin
+[complete listing]: https://www.typescriptlang.org/play?#code/CYUwxgNghgTiAEYD2A7AzgF3gYWmtAXPAN4BQ88IAHhiCsEQKI13ADcpAvh6QJYq0YAMyhgEuKPgA8ABRhIMSAHwly8FCADu8ABQA6A7ADmhHIpgBBGCdnzFSgJRE5CpBwrVa9Ji3q3XShycpKQYAJ4ADgguigDyQlIAKioAvPCJlL7AaDh4aFL8QiAw8DHK8AD8pXZI8ESJPOFR8ACyvFQgwEmp6Zle2fAA2oXF8AASIFDAADTwBnojJYlQvBAAumpVZfFSE1MqAGSt7Z1JKxBKakTE3CFNCMz9UgBCkghpNz1SbVT8OZ6sHJQFBhQZrWZlJQ6NTzCI1UyDeY-P6zADqvAwAAtEpjePkyrMfqdBq80CBZkj2n81kolBsHPAUioJNIiV0SW8KQZkegITUaYE7pEEOisTi8f5FLNSSAemQKIMANLwfjwADWIDCSCE1Vca2cNSVaz6gN08wA+kRFvArCYGUyVSgiiVYgBXDARd1qChVHRYvFEUWYgDKrqiMElSGlnPgiqUXL0lpt1jQ9pUbo9XooFANriNQUawvgQdD4cj0bJhJAWKQwB6LWrmNrJvoOQ1Wp1Ms28BlgwbNeAxoBrbNBiT1ttqcZKmtGc9GG9lR7b3gRzKq5I8HNaDDxX0Y6Ik6c8Dn7vgwWzdWXZI3ZSu14Qa5qPAA9C+bSh4FNgBjeKgoBA8D3EBtTWsg6AYDArpgOYX7WK6AC2dAYGgoRFtg5iTpGPTrsOAzEI6GL7omVpOqMR5EMCYTnt2k73mCr7vq6aBQEYCCgAhSAhOBmA4EgroCKMaQsmgeh4To8rwAAbgBrogEQAAM0xqPwREyRAcmMvACkMpJFD+qJ6maWkRkgO457KRQGg0DoumLnAGCujAn4GXopkANTueZnDKZwDg8DxWBCEgtQpGob4UAAehUagaNo2D8YJMC2eZEXwNFpBAA
