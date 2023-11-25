@@ -1,4 +1,5 @@
 ---
+layout: post
 title: "Making Typescript work for you (and your day job)"
 category: Experiments
 tags:
@@ -16,32 +17,54 @@ Hey there, it's been a while. I recently got a new position at Odoo in Buffalo a
 been spending the last few months acclimatizing to the daily grind.
 Anyhow, having grown up alongside static languages, I am now
 confronted with the task of surviving a mainly dynamic codebase of untyped Python (!) and
-Javascript (!!), and least to say it has not been easy. I enjoyed it when it was AutoHotkey,
-when my teeny tiny little script did one and only one thing in particular and was only around
+Javascript (!!), and least to say it has not been easy.
+
+I enjoyed it when it was [AutoHotkey], when my teeny tiny little script did one and only one thing in particular and was only around
 a hundred lines long, but boy does it take a toll on one's psyche to have to *divine* the
 meaning of code somebody else wrote. So much so that I wrote an entire LSP server just for
 Odoo-specific code! If you happen to also write Odoo code for an extended amount of time,
 or even if you are just interested in how LSP servers work, you should check out [odoo-lsp] which is
 open source and freely available.
 
-```ahk
-asdkjasdkajsdkj
+```
+; A snippet of AHK code that draws a settings screen
+; Its meaning has been lost to time...
+GUI_Initialize:
+Gui, New
+Gui +HwndGuiHwnd
+Gui, -MaximizeBox -MinimizeBox
+
+Gui, Add, GroupBox, x12 y9 w230 h190 , Options
+Gui, Add, Text, x22 y32 w60 h20 +Center, Input Mode
+Gui, Add, DropDownList, x92 y29 w140 Choose%R_InputMode% gUpdate_R_InputMode vR_InputMode AltSubmit, Native Input|Dubeolshift|SCIM Romaja
+Gui, Add, Text, x22 y59 w60 h20 +Center, SCIM Table
+Gui, Add, Text, x92 y59 w90 h20 vR_CurrentTable, %R_CurrentTable%
+Gui, Add, Button, x192 y59 w40 h20 , Load
+
+Gui, Add, CheckBox, x22 y79 w150 h20 Checked%isActive% visActive, Do character conversion
+Gui, Add, CheckBox, x22 y99 w150 h20 Checked%R_LeadingSilent% vR_LeadingSilent, Automatic silent ieung (ㅇ)
+Gui, Add, CheckBox, x22 y119 w150 h20 Checked%R_VerboseTip% vR_VerboseTip, Display all notifications
+Gui, Add, Text, x22 y139 w160 h20 , Windows change refresh delay
+Gui, Add, Slider, x22 y159 w210 h30 ToolTip +Range1-30 vR_RefreshDelay, %R_RefreshDelay%
 ```
 
 With introductions out of the way, let's get into the meat of this blog: enhancing dynamic Javascript
-codebases with Typescript. You know how the saying goes, "every happy family is equally happy, but each
-unhappy family is uniquely dysfunctional" (pardon the paraphrasing), and it rings true even here.
-If you have been unfortunate enough to have a dayjob as a web developer pre-ES6, you would know that JS
+codebases with Typescript. You know how the saying goes,
+"all happy families are similar, but each unhappy family is unhappy in its own way", and it rings true even here.
+
+If you have been unfortunate enough to have a day job as a web developer pre-ES6, you would know that JS
 used to be the Wild West when it comes to programming patterns. Most codebases usually have jQuery as
 their sole commonality, and if you're lucky consistent use of functions as constructors, but everyone
 and their mom has their own takes on how to do class inheritance and module management. Google has
 their `goog.provide`, Node.js went with `module.exports`, and a typical webpage could be using either [IIFE]s,
-[AMD modules] or just rawdogging script tags like everyone else. Safe to say, like every JS codebase
-that predates ES6, Odoo made many unique choices when it comes to these. They have their own `odoo.define`
+[AMD modules] or just rawdogging script tags like everyone else.
+
+Safe to say, like every JS codebase
+that predates ES6, Odoo made equally as many unique choices. They have their own `odoo.define`
 in the vein of IIFEs but also allow importing via `require`, and there remains a large number of "classes"
 using a weird type of inheritance called `Class.extend`. Here's how it looks in practice:
 
-{% shiki js %}
+```js twoslash
 odoo.define('my.module', function (require) {
   var Class = require('web.Class');
 
@@ -57,7 +80,8 @@ odoo.define('my.module', function (require) {
   });
 
   return Foo;
-});{% endshiki %}
+});
+```
 
 As far as legacy patterns go, this one isn't too bad... except it's not the easiest to adapt to modern JS/TS.
 I'll list a few reasons why:
@@ -66,7 +90,9 @@ I'll list a few reasons why:
 Even assuming that it looks deceptively similar to AMD modules (beats me, I never used it) it still mixes
 concepts from all contemporary styles of module management into this weird, proprietary system.
 It's just as bad as `goog.provide`, and necessitates changing the internals of Typescript to accommodate this.
-As an experiment, I did write a small [Typescript plugin] that hooks up and (tries to) resolve these modules,
+The one saving grace is that Typescript understands CommonJS, which promotes `require` to a built-in function
+to do its bidding; the reason anything works in this system.
+As an experiment, I wrote a small [Typescript plugin] that hooks up and (tries to) resolve these modules,
 but that was more than a year ago when I was still very green and safe to say it didn't work very well.
 
 **Module names are arbitrary:** Mainstream module management systems try to follow some logic to ensure
@@ -77,14 +103,14 @@ what goes in some module A and module B and would rather be told what's inside t
 sucks, because it doesn't match what you see on the filesystem.
 
 **`Class.extend` is completely opaque:** Even if `Class` and `Class.extend` somehow happens to be resolved
-symbols, you can inspect their types and discover that they make no sense whatsoever. Although this is as
+symbols, when inspecting their types you would discover that they make no sense whatsoever. Although this is as
 much a shortcoming of Typescript itself, prototype modifications are usually highly irregular in nature
 and requires a decent amount of type magic (foreshadowing) to correctly represent. And of course being
 legacy code it doesn't get as much love as it should these days.
 
-It is for these and other reasons that the Odoo codebase is slowly moving away from `odoo.define` and adopting
-ES6 for their main codebase, although some warts remain, such as the need to transpile to `odoo.define`
-and modules still being able to be given arbitrary names. With (most of) these fundamental modules migrated to ES6,
+It is for these and other reasons that Odoo is slowly moving away from `odoo.define` and adopting
+ES6 for their codebase, although some warts remain, such as the need to transpile to `odoo.define`
+and modules still being allowed to be given arbitrary names. With (most of) the fundamental modules migrated to ES6,
 it was finally time for me to connect the dots and flip the switch on full discoverability within the codebase.
 
 There are two steps to this task: resolving the modules' paths, and properly typing `Class.extend`. The first
@@ -98,12 +124,12 @@ odoo-lsp tsconfig --addons-path foo,bar,.. > tsconfig.json
 ```
 
 This will fill out both the `@module/*` modules and the classic "aliased" modules with ease.
-The next, however, stumped me for over a year without a proper solution. Let's take a closer
-look at the syntax of `Class.extend` and walk through my reasoning that led me to the answer.
+The next step, however, stumped me for over a year without a proper solution. Let's take a closer
+look at the syntax of `Class.extend` and walk through the reasoning that led me to the solution.
 
 ## The Problem
 
-{% shiki ts %}
+```ts twoslash
 declare const Class: {
   extend: Function
 };
@@ -129,12 +155,13 @@ type Foo = {
     bar?: string;
     say(): void;
   }
-}{% endshiki %}
+}
+```
 
 Here's a type puzzle for you: what's the right type for `Class.extend`? And to make it clearer, it does take variadic parameters
 that form a [mixin] system, and common usage puts the actual prototype as the last parameter:
 
-{% shiki ts %}
+```ts twoslash
 declare const Class: {
   extend: Function
 };
@@ -148,14 +175,15 @@ const Say = {
   },
 }
 const AnotherMixin = {};
-const Bar = Class.extend(Say, AnotherMixin, { /* .. */ });{% endshiki %}
+const Bar = Class.extend(Say, AnotherMixin, { /* .. */ });
+```
 
 *You can skip to the solution [here](#the-solution), or otherwise read on for the analysis.*
 
 A good place to start is to form the type around its usage: a function that takes variadic parameters, all of which has to maintain
 their types. So here's our first version of `extend`:
 
-{% shiki ts %}
+```ts twoslash
 declare const Class: {
   extend: Extend
 }
@@ -166,13 +194,13 @@ const Foo = Class.extend(123, 'asd');
 //    ^?
 const Bar = Class.extend(null, {});
 //    ^?
-{% endshiki %}
+```
 
 This first draft is not very useful, but it helps us form a mindset around *how* the types of `T` are to be used. One way is
 to think of them as *prototypes*, and later ones override earlier ones. And type intersection is how we combine two types in Typescript,
 so let's try that:
 
-{% shiki ts %}
+```ts twoslash
 type Extend = <T extends any[]>(...args: T) => Mixed<T>;
 
 // Combined has both the properties of A and B, where B's win out in case of conflicts.
@@ -180,7 +208,7 @@ type Combined<A, B> = A & B;
 
 // What goes here?
 type Mixed<T> = {};
-{% endshiki %}
+```
 
 If you are familiar with Typescript you might know the answer already, but this one part can be considered a gateway into a new world
 of type-level metaprogramming to many, so let's go a bit slower. *Recursion* is the keyword: when working with types, we don't get to work
@@ -203,7 +231,7 @@ libraries use tactics like this, and this is also why you hear people describe T
 [complete](https://github.com/Dragon-Hatcher/type-system-chess). More importantly,
 here is the same function described using the TS type system:
 
-{% shiki ts %}
+```ts twoslash
 // Since we can't add numbers using just types yet, consider this fictional, useless type:
 interface Add<A, B> {}
 type Sum<T> =
@@ -215,12 +243,12 @@ type Sum<T> =
     ? Add<Head, Sum<Tail>>
     // or we got to our base case, in which case just return an empty type.
     : {};
-{% endshiki %}
+```
 
 This is but one of `infer`'s many capabilities, but already it enables many powerful functional programming patterns. You can read more about it [here](infer).
 With this, we can continue filling in the type of `Mixed`:
 
-{% shiki ts %}
+```ts twoslash
 type Extend = <T extends any[]>(...args: T) => Mixed<T>;
 
 type Mixed<T> =
@@ -231,19 +259,19 @@ type Mixed<T> =
     : {};
 type Foo = Mixed<[{ foo: boolean }, { bar: number }]>;
 //   ^?
-{% endshiki %}
+```
 
 And we're 80% there! Small problem, however: this is not the right type. What we pass as arguments to `extend` are merely the class's
 partial prototypes, and a class should be constructed using `new`! Yet the current `extend` function will only return the prototype for us. How do we represent
 a class in terms of Typescript? It's pretty simple actually, but the syntax is definitely not common:
 
-{% shiki ts %}
+```ts twoslash
 interface Class<Proto> {
   new (...args: any[]): Proto;
 }
 declare const WeirdClass: Class<number>;
 const instance: number = new WeirdClass();
-{% endshiki %}
+```
 
 The `new (...args)` syntax is just like any old function signature, except it denotes that it only makes sense to invoke this function with
 the `new` keyword and nothing else. Its return type is how we annotate the type of the *instance*, noting how the instance has nothing to do with
@@ -252,18 +280,18 @@ the rest of the type.
 You can think of `Class` as a box that holds a prototype, and only when it is called with `new` that an instance of said class is constructed.
 Let's use this to complete our first functional draft of `Extend`:
 
-{% shiki ts %}
+```ts twoslash
 type Mixed<T> = T extends [infer Head, ...infer Tail] ? Head & Mixed<Tail> : {};
 // ---cut---
 interface Class<Proto> {
   new (...args: any[]): Proto;
 }
 type Extend = <T extends any[]>(...args: T) => Class<Mixed<T>>;
-{% endshiki %}
+```
 
 Now when we call `new Foo`, it will give us the proper type:
 
-{% shiki ts %}
+```ts twoslash
 type Mixed<T> = T extends [infer Head, ...infer Tail] ? Head & Mixed<Tail> : {};
 interface Class<Proto> { new (...args: any[]): Proto; }
 type Extend = <T extends any[]>(...args: T) => Class<Mixed<T>>;
@@ -278,11 +306,11 @@ foo.foo;
 //  ^?
 foo.say;
 //  ^?
-{% endshiki %}
+```
 
 That works! Except when you try to use `Foo` as a mixin, which absolutely fails.
 
-{% shiki ts %}
+```ts twoslash
 // @errors: 2339
 type Mixed<T> = T extends [infer Head, ...infer Tail] ? Head & Mixed<Tail> : {};
 interface Class<Proto> { new (...args: any[]): Proto; }
@@ -297,38 +325,41 @@ const bar = new Bar();
 bar.bar;
 //  ^?
 bar.foo;
-{% endshiki %}
+```
 
 The reason `Bar` did not inherit `Foo.foo` is that when we put them inside `Mixed`, we were
 mixing together the prototype with the class of `Foo` itself, when what we wanted was only `Foo`'s prototype!
 Here's how to fix it:
 
-{% shiki ts %}
+```ts twoslash
 declare const Class: { extend: Extend }
-// ---cut---
 interface Class<Proto> {
   new (...args: any[]): Proto;
 }
+type Extend = <T extends any[]>(...args: T) => Class<Mixed<T>>;
+// ---cut---
 // infer works here too, to extract the prototype of Class.
 // you can also call this "unboxing" the Class.
 type ProtoOf<T> = T extends Class<infer Proto> ? Proto : T;
-type Extend = <T extends any[]>(...args: T) => Class<Mixed<T>>;
 type Mixed<T> = T extends [infer Head, ...infer Tail]
   // If Head is a class, we get its prototype, otherwise we mix in Head itself.
   ? ProtoOf<Head> & Mixed<Tail>
   : {};
+
 const Foo = Class.extend({
   foo: 123,
   say() {  },
 });
+
 const Bar = Class.extend(Foo, { 
   bar: null,
 });
+
 const bar = new Bar();
 // this works!
 bar.foo;
 //  ^?
-{% endshiki %}
+```
 
 Hopefully by this point you can begin to see how truly powerful Typescript's `infer` really is.
 And this gives us the first feature-complete definition of `Extend`, one that you can slap right in
@@ -337,9 +368,9 @@ your codebase and gain autocompletion everywhere! Right?
 ## The Year-Long Search
 
 For the most part, yes. But if you were to use this type in anger, you will quickly come up against
-one of its disadvantages:
+one of its drawbacks:
 
-{% shiki ts %}
+```ts twoslash
 // @errors: 2339
 declare const Class: { extend: Extend }
 interface Class<Proto> { new (...args: any[]): Proto; }
@@ -366,7 +397,7 @@ const Foo = Class.extend(Say, {
     this.name;
   },
 });
-{% endshiki %}
+```
 
 Suffice to say, it is completely oblivious to `Say`'s contributions to the overall prototype.
 The type of `this` that you see here is merely a reflection of the object literal itself,
@@ -385,7 +416,7 @@ Nevertheless, how do we even annotate the type of `this` for all of an object's 
 Before I show you my first attempt, let's make a concession that the *primary prototype* i.e. the object literal must
 be at the end to qualify for `this`-inheritance. Let's see it:
 
-{% shiki ts %}
+```ts twoslash
 // @errors: 2353
 interface Class<Proto> { new (...args: any[]): Proto; }
 type ProtoOf<T> = T extends Class<infer Proto> ? Proto : T;
@@ -422,7 +453,7 @@ const Foo = Class.extend(Say, {
     this.name;
   },
 });
-{% endshiki %}
+```
 
 The naive expectation is that this would work, because `Proto extends` basically constrains `Proto`
 to be a specific type, that is the combination of `Base` and all of the `Mixins`. But this doesn't work.
@@ -440,7 +471,7 @@ intuition that would untangle this puzzle. Pause here if you'd like to work it o
 You see, `extends` is one of the more nebulous keywords in Typescript because
 it does the exact opposite thing its namesake describes: it *constrains* types! Take this for example:
 
-{% shiki ts %}
+```ts twoslash
 // @errors: 2345
 function bar<T extends 'foo' | 'bar'>(arg: T) {
   // the concrete type of 'arg' is T
@@ -455,13 +486,13 @@ bar('bar');
 
 // but this wouldn't work:
 bar('baz');
-{% endshiki %}
+```
 
 It is plain to see in this example that it would be impossible to call `bar` with any other arguments other than the ones prescribed.
 However, things get tricky when `T` extends a complex object, as was the case in the previous implementation of `Extend`.
 Here's a miniature version for clarity:
 
-{% shiki ts %}
+```ts twoslash
 // @errors: 2345
 interface A {
   a: string;
@@ -483,7 +514,7 @@ bar({ b: 123 });
 
 // call typechecks <=> arg extends both A and B
 bar({ a: 'asd', b: 123 });
-{% endshiki %}
+```
 
 Can you see the issue? In the latter case `arg extends A & B` so it must satisfy both `A` and `B`, meaning it must contain all of
 their constituent properties and methods! In the case of `extend`, we only have a primary prototype we would like to somehow
@@ -496,7 +527,7 @@ This blog is already getting a bit long, so I'll show you the final solution tha
 
 ## The Solution
 
-{% shiki ts %}
+```ts twoslash
 interface Class<Proto> { new (...args: any[]): Proto; }
 type ProtoOf<T> = T extends Class<infer Proto> ? Proto : T;
 type Mixed<T> = T extends [infer Head, ...infer Tail] ? ProtoOf<Head> & Mixed<Tail> : {};
@@ -530,14 +561,14 @@ const Foo = Class.extend(Say, {
     //   ^?
   },
 });
-{% endshiki %}
+```
 
 The beauty of `Extend` is that type inference just works, so that `this` is always the correct type no matter the situation.
 The only remaining problem is overridden methods, and again Odoo follows the convention of `this._super` referencing the overriden method.
 We can use the same trick to inject a special version of `this` whose `_super` is different for every method, but only
 if the overriden method actually exists:
 
-{% shiki ts %}
+```ts twoslash
 declare const Class: { extend: Extend }
 interface Class<Proto> { new (...args: any[]): Proto; }
 type ProtoOf<T> = T extends Class<infer Proto> ? Proto : T;
@@ -545,6 +576,7 @@ type Mixed<T> = T extends [infer Head, ...infer Tail] ? ProtoOf<Head> & Mixed<Ta
 type Extend<Base = {}> =
   <Mixins extends any[], Proto>(...protos: [...Mixins, WithThis<Proto, Mixed<[Base, ...Mixins]>>]) =>
     Class<Mixed<[Base, ...Mixins, Proto]>>;
+const Say = { name: null, greet() { } }
 // ---cut---
 type WithThis<Proto, Base> = {
   [K in keyof Proto]:
@@ -564,33 +596,21 @@ type WithSuper<Proto, Base, Method> =
       : Base & Proto
     : Base & Proto;
 
-const Say = {
-  name: null,
-  greet() {
-    if (this.name) {
-      return `Hello, my name is ${this.name}`;
-    }
-  }
-}
-
 const Foo = Class.extend(Say, {
-  // Note how _super has the right return type,
-  // but greet's return type could not be inferred.
+  // _super came from Say.greet, so this works
   greet() {
-    const self = this;
-    //    ^?
-    return self._super();
+    return this._super();
     //          ^?
   },
 });
-{% endshiki %}
+```
 
 ## The Twist
 
 ...Aha! Gotcha, didn't I? When you thought it was the home stretch, but apparently there are still mysteries to be solved and bugs to be squashed.
 You see, Typescript's type magic comes at a cost, not only to the code's readability (and arguably the reader's sanity) but also to the type checker's complexity, and since it was built
 by mere mortals it also comes with all the attendant limits that mortals cannot hope to overcome with ease. If you were successful in annotating the type
-of `Class.extend` and witness its usage around a typical Odoo codebase, you will catch glimpses of certain... imperfections.
+of `Class.extend` and witness its usage around a typical Odoo codebase, you will catch glimpses of certain oddities.
 
 ```ts
 import Widget from 'web.Widget';
@@ -618,6 +638,7 @@ Regardless, it seems that our little experiment has managed to reach the limits 
 particular topic in the future, preferably after me or someone else opening a PR to fix this particular wart in what I can only otherwise consider one of my favorite languages.
 And that was the story of how I saved my relationship with my day job, and how you can too with the right amount of 🌈 Type Magic.
 
+[AutoHotkey]: https://www.autohotkey.com
 [odoo-lsp]: https://github.com/Desdaemon/odoo-lsp
 [IIFE]: https://developer.mozilla.org/en-US/docs/Glossary/IIFE
 [AMD modules]: https://requirejs.org/docs/whyamd.html#amd

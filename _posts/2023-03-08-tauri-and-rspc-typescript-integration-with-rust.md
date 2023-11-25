@@ -1,5 +1,4 @@
 ---
-layout: post
 title: "Tauri and rspc: TypeScript integration with Rust"
 category: Experiments
 tags:
