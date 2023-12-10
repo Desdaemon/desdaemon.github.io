@@ -10,6 +10,8 @@ tags:
 
 <link rel="stylesheet" href="/assets/css/shiki.css">
 
+**UPDATE 12/23:** Contains an [errata](#errata) for some of the points made in this article.
+
 *TL/DR: This is a tutorial for how to make Typescript work for a very obscure usage of Javascript. You can skip ahead to
 the [problem statement](#the-problem) and its [solution](#the-solution), but do continue reading for the rationale.*
 
@@ -48,7 +50,7 @@ Gui, Add, Text, x22 y139 w160 h20 , Windows change refresh delay
 Gui, Add, Slider, x22 y159 w210 h30 ToolTip +Range1-30 vR_RefreshDelay, %R_RefreshDelay%
 ```
 
-With introductions out of the way, let's get into the meat of this blog: enhancing dynamic Javascript
+With introductions out of the way, let's get into the meat of this article: enhancing dynamic Javascript
 codebases with Typescript. You know how the saying goes,
 "all happy families are similar, but each unhappy family is unhappy in its own way", and it rings true even here.
 
@@ -524,7 +526,7 @@ automagically *augment* with the types of its mixins, not force the end-user to 
 acts more like an `implements` that forces the end-user to supply all of the properties that make up a certain interface.
 
 Alright, enough type theory for one day. The intuition is that `T extends` does the opposite of what we want it to do. So what's the alternative?
-This blog is already getting a bit long, so I'll show you the final solution that does work in the most general of cases.
+This article is already getting a bit long, so I'll show you the final solution that does work in the most general of cases.
 
 ## The Solution
 
@@ -652,7 +654,7 @@ Even though it would be trivial to infer `this._super() + 1` to be `number` and 
 A rundown of what happens when `Foo.next`'s return type is being inferred:
 
 - `next`'s return type depends on the expression `this._super() + 1`
-- Instead of short-circuiting here because `object + 1` always returns `number`, it evaluates `this._super()`
+- Instead of short-circuiting here because `object + 1` always[\*](#errata) returns `number`, it evaluates `this._super()`
 - ...which evaluates `this._super`
 - ...which evaluates `this`, whose type is `WithThis<..>`
 - `WithThis<..>` has a clause `Proto[K] extends (..) => infer Output`, which is the type in question.
@@ -695,6 +697,30 @@ because boy does it always take a lot of time to break the ice! (sorry not sorry
 Regardless, it seems that our little experiment has managed to reach the limits of what Typescript is presently capable of. Perhaps I might revisit this
 particular topic in the future, preferably after me or someone else opening a PR to fix this wart in what I can only otherwise consider one of my favorite languages.
 And that was the story of how I saved my relationship with my day job, and how you can too with the right amount of 🌈 Type Magic.
+
+## Errata
+
+- `object + 1` does not in fact always return `number`, because it depends on the type of `object`. Here's a demonstration:
+
+```ts twoslash
+// @errors: 2365
+function foo(): string {
+  // The add operator is well-formed for `string` and `number`,
+  // i.e. it always returns a string.
+  return 'asd' + 1;
+}
+
+function bar(val: object) {
+  // Typescript intentionally does not allow addition between `object` and `number`,
+  // but runtime behavior is well-defined in the spec so this would be a numeric operation.
+  return val + 1;
+}
+```
+
+If one were to follow the specs to a T, the type of the addition operator depends on
+its operands, or if not possible to determine statically `string | number` because of course it
+also concatenates strings where possible. If you're interested, here's how the specs allow for
+addition between two unrelated types via [ApplyStringOrNumericBinaryOperator](https://262.ecma-international.org/12.0/#sec-applystringornumericbinaryoperator).
 
 [AutoHotkey]: https://www.autohotkey.com
 [odoo-lsp]: https://github.com/Desdaemon/odoo-lsp
