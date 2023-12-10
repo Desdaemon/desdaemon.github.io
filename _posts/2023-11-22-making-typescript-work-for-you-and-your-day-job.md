@@ -245,7 +245,8 @@ type Sum<T> =
     : {};
 ```
 
-This is but one of `infer`'s many capabilities, but already it enables many powerful functional programming patterns. You can read more about it [here](infer).
+This is but one of `infer`'s many capabilities, but already it enables many powerful functional programming patterns.
+You can read more about it [here](https://www.typescriptlang.org/docs/handbook/2/conditional-types.html#inferring-within-conditional-types).
 With this, we can continue filling in the type of `Mixed`:
 
 ```ts twoslash
